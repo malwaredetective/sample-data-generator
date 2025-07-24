@@ -1,0 +1,6 @@
+colorama
+faker
+openpyxl
+progress
+pyfiglet
+reportlab
