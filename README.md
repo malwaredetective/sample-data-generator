@@ -2,13 +2,14 @@
 ![python](https://img.shields.io/badge/python-3.8%2B-blue)
 ![License](https://img.shields.io/badge/license-MIT-green)
 
-**sample-data.py** is a flexible Python script for quickly generating realistic sample datasets in various formats (CSV, TXT, JSON, PDF, XLSX). 
-
-## ✨ Features
-- 🤖 Powered by [Faker](https://faker.readthedocs.io/) to generate realistic datasets.
-- 🔧 Customize data types for your dataset.
-- 💾 Export as CSV 📊, TXT 📄, JSON 🗂, PDF 📄, or XLSX 📊.
-- 🚦 Built-in progress bar for visual feedback.
+**sample-data.py** is a flexible Python script powered by [Faker](https://faker.readthedocs.io/) to quickly generate realistic sample datasets in various formats.
+- CSV
+- TXT
+- JSON
+- PDF
+- SQL
+- XLSX
+- XML
 
 ## ⚡ Quickstart Guide
 
@@ -37,7 +38,7 @@ python3 sample-data.py --name <basefilename> --count <num_records> --output <for
 ```
 
 ```
-(venv) khub@KHUB-PC:/mnt/c/Users/Khub/source/repos/sample-data-generator$ python3 sample-data.py --name employee_database --count 5000 --output json --fields name email address phone_number ssn
+(venv) khub@KHUB-PC:/mnt/c/Users/Khub/source/repos/sample-data-generator$ python3 sample-data.py --name contacts --count 5000 --output json --fields name email phone_number address
                            _                _       _
  ___  __ _ _ __ ___  _ __ | | ___        __| | __ _| |_ __ _   _ __  _   _
 / __|/ _` | '_ ` _ \| '_ \| |/ _ \_____ / _` |/ _` | __/ _` | | '_ \| | | |
@@ -47,7 +48,7 @@ python3 sample-data.py --name <basefilename> --count <num_records> --output <for
 
 Generating JSON ... |████████████████████████████████| 5000/5000
 
-[SUCCESS] Created: 'employee_database.json', Size: 0.98 MB
+[SUCCESS] Created: 'contacts.json', Size: 0.86 MB
 ```
 
 ## 📚 Usage 
@@ -62,25 +63,20 @@ python3 ./sample-data.py --help
 | `--name [STRING]` | The base name of the output file. | `sample` |
 | `--count [INT]` | The number of records to generate. | `100` | 
 | `--output [STRING]` | The output file format. | `TXT` |
-| `--fields [STRING]` | A space-separated list of data types to include within the sample data. | `name, email, address, phone_number, ssn, ip_address` |
+| `--fields [STRING]` | A space-separated list of data types to include within the sample data. | `name, email, address, password, phone_number, ssn, ip_address` |
 
 ## 🚀 Examples
 
-### Generate a TXT file with 250 records:
+### Generate a CSV file with 5000 records of names, addresses, phone numbers and social security numbers:
+
 ```bash
-python3 sample-data.py --name data --count 250 --output txt
+python3 sample-data.py --name customers --count 5000 --output csv --fields name address phone_number ssn
 ```
 
-### Generate a CSV file with 5000 records of names, emails, addresses and social security numbers:
+### Generate an SQL database with 250 records of names, passwords and email addresses:
 
 ```bash
-python3 sample-data.py --name employee_database --count 5000 --output csv --fields name email address phone_number ssn
-```
-
-### Generate a JSON file with 200 records of names, emails and phone numbers:
-
-```bash
-python3 sample-data.py --name contacts --count 200 --output json --fields name email phone_number
+python3 sample-data.py --name employee_database --count 250 --output sql --fields name password email
 ```
 
 

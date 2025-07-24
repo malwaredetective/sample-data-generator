@@ -4,6 +4,8 @@ import argparse
 import csv
 import json
 import pyfiglet
+import sqlite3
+import xml.etree.ElementTree as ET
 from faker import Faker
 from faker.providers import internet, phone_number
 from progress.bar import ShadyBar
@@ -20,6 +22,7 @@ FIELD_GENERATORS = {
     'name': fake.name,
     'email': fake.email,
     'address': lambda: fake.address().replace('\n', ', '),
+    'password': lambda: fake.password(length=12),
     'phone_number': fake.phone_number,
     'ssn': fake.ssn,
     'ip_address': fake.ipv4_public,
@@ -149,6 +152,47 @@ def write_xlsx(filename, fields, count):
     except Exception as e:
         log_message("[ERROR]", f"Could not write XLSX to '{filename}': {e}", Fore.RED)
 
+def write_xml(filename, fields, count):
+    try:
+        root = ET.Element("records")
+        with ShadyBar('Generating XML ...', max=int(count)) as bar:
+            for _ in range(count):
+                record = generate_record(fields)
+                rec_elem = ET.SubElement(root, "record")
+                for field in fields:
+                    child = ET.SubElement(rec_elem, field)
+                    child.text = str(record.get(field, ''))
+                bar.next()
+            bar.finish()
+        tree = ET.ElementTree(root)
+        tree.write(filename, encoding='utf-8', xml_declaration=True)
+    except Exception as e:
+        log_message("[ERROR]", f"Could not write XML to '{filename}': {e}", Fore.RED)
+
+def write_sql(filename, fields, count):
+    try:
+        table_name = "sample_data"
+        field_types = {field: 'TEXT' for field in fields}
+
+        columns = ', '.join(f"{f} {field_types[f]}" for f in fields)
+        conn = sqlite3.connect(filename)
+        cursor = conn.cursor()
+        cursor.execute(f"CREATE TABLE IF NOT EXISTS {table_name} ({columns});")
+        with ShadyBar('Generating SQL DB ...', max=int(count)) as bar:
+            for _ in range(count):
+                record = generate_record(fields)
+                values = tuple(record.get(field, '') for field in fields)
+                placeholders = ', '.join('?' for _ in fields)
+                cursor.execute(
+                    f"INSERT INTO {table_name} ({', '.join(fields)}) VALUES ({placeholders});", values
+                )
+                bar.next()
+            bar.finish()
+        conn.commit()
+        conn.close()
+    except Exception as e:
+        log_message("[ERROR]", f"Could not write SQL database to '{filename}': {e}", Fore.RED)
+
 def main():
     parser = argparse.ArgumentParser(
         description="A Python script that dynamically generates sample data."
@@ -160,11 +204,12 @@ def main():
 
     parser.add_argument("--name", type=str, default="sample", help="The base name of the output file.")
     parser.add_argument("--count", type=int, default=100, help="Number of records to generate.")
-    parser.add_argument("--output", type=str, choices=["csv", "json", "pdf", "txt", "xlsx"], default="txt", help="The output file format.")
+    parser.add_argument("--output", type=str, choices=["csv", "json", "pdf", "txt", "xlsx", "xml", "sql"], default="txt", help="The output file format.")
     parser.add_argument("--fields", type=str, nargs='*', choices=DATA_FIELDS, default=DATA_FIELDS, help="A space-separated list of data types to include within the sample data.")
     args = parser.parse_args()
 
-    filename = f"{args.name}.{args.output}"
+    filename = f"{args.name}.{args.output if args.output != 'sql' else 'db'}"
+
     if os.path.exists(filename):
         prompt_overwrite(filename)
 
@@ -178,6 +223,10 @@ def main():
         write_pdf(filename, args.fields, args.count)
     elif args.output == "xlsx":
         write_xlsx(filename, args.fields, args.count)
+    elif args.output == "xml":
+        write_xml(filename, args.fields, args.count)
+    elif args.output == "sql":
+        write_sql(filename, args.fields, args.count)
     else:
         log_message("[ERROR]", f"The output format you selected is not supported.", Fore.RED)
         sys.exit(1)
